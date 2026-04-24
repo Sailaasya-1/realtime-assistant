@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TwinMind — Live Suggestions Web App
+
+A real-time assistant that transcribes audio, generates live AI suggestions, and answers questions via chat.
+
+---
+
+## Features
+
+- **Live Transcription** — mic captures audio every 30s, transcribed via Groq Whisper
+- **AI Suggestions** — auto-generates 3 suggestion cards every 30s from transcript context
+- **4 card types** — Question to ask, Talking point, Answer, Fact-check
+- **Chat** — click any suggestion or type a question for a detailed AI response
+- **Export** — download full session as JSON (transcript + suggestions + chat)
+
+---
+
+## Tech Stack
+
+- **Framework** — Next.js 14
+- **State** — Zustand
+- **AI** — Groq API (Whisper for transcription, openai/gpt-oss-120b for suggestions + chat)
+- **Deployment** — Vercel
+
+---
+
+## How It Works
+
+```
+Mic → /api/transcribe → Groq Whisper → Store
+                                          ↓
+                              words > 10 → /api/suggestions → Groq LLM → Suggestion Cards
+                                          ↓
+                              Click card → /api/chat → Groq LLM → Chat Response
+```
+
+1. User clicks mic → browser captures audio chunks
+2. Every 30s, audio blob sent to `/api/transcribe` → Groq Whisper returns text
+3. Text saved to Zustand store → `useSuggestions` watches word count
+4. Once transcript has 10+ words → fires `/api/suggestions` → 3 cards appear
+5. Every 30s after → new batch of 3 cards, older batches fade
+6. User clicks card or types question → `/api/chat` returns detailed answer with transcript context
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+
+- Groq API key — get one free at [console.groq.com](https://console.groq.com)
+
+### Local Development
 
 ```bash
+# Clone the repo
+git clone https://github.com/YOUR_USERNAME/live-meeting-assistant.git
+cd live-meeting-assistant
+
+# Install dependencies
+npm install
+
+# Add your Groq API key
+echo "GROQ_API_KEY=gsk_your_key_here" > .env.local
+
+# Run the dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment Variables
 
-## Learn More
+| Variable | Description |
+|----------|-------------|
+| `GROQ_API_KEY` | Your Groq API key from console.groq.com |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment (Vercel)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push code to GitHub
+2. Go to [vercel.com](https://vercel.com) → New Project → Import repo
+3. Add `GROQ_API_KEY` in Environment Variables
+4. Click Deploy
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+  page.tsx              # Main 3-column layout
+  layout.tsx            # Root layout + metadata
+  api/
+    transcribe/         # Groq Whisper transcription
+    suggestions/        # AI suggestion generation
+    chat/               # AI chat responses
+    test-groq/          # API key validation
+
+components/
+  TranscriptPanel.tsx   # Column 1 — mic + transcript
+  SuggestionsPanel.tsx  # Column 2 — suggestion batches
+  SuggestionCard.tsx    # Individual suggestion card
+  ChatPanel.tsx         # Column 3 — chat interface
+  ExportButton.tsx      # Session export
+  SettingsButton.tsx    # Prompt + context settings
+
+lib/
+  store.ts              # Zustand global state
+  useChat.ts            # Chat hook
+  useSuggestions.ts     # Suggestion polling hook
+  SettingsStore.ts      # Settings + prompts
+  types.ts              # Shared TypeScript types
+```
+
+---
+
+## Settings
+
+Click the ⚙ Settings button to customize:
+- **Suggestion prompt** — controls what the AI generates
+- **Chat prompt** — controls how the AI answers questions
+- **Context lines** — how much transcript to send with each request
+
+---
+
+## License
+
+MIT
