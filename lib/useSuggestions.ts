@@ -25,8 +25,6 @@ export function useSuggestions() {
     
     // Load settings and check for required API key and transcript content before making the API call
     const settings = loadSettings();
-    console.log("groqApiKey:", !!settings.groqApiKey);
-    if (!settings.groqApiKey) { console.log("BLOCKED: no API key"); return; }
     if (transcriptLines.length === 0) { console.log("BLOCKED: no transcript"); return; }
     
     // Prepare the transcript context for the API call by taking the last few lines based on settings
