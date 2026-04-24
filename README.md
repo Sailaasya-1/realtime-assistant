@@ -2,7 +2,7 @@
 
 A real-time assistant that transcribes audio, generates live AI suggestions, and answers questions via chat.
 
-🔗 **Live Demo:**https://ai-chatbot-orcin-pi.vercel.app/**
+🔗 **Live Demo: https://ai-chatbot-orcin-pi.vercel.app/**
 
 ---
 
