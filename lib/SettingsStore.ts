@@ -23,30 +23,35 @@ export const DEFAULT_SETTINGS = {
           RULES:
           - Generate exactly 3 suggestions as a JSON object: {"suggestions": [...]}
           - Each suggestion must have: "type", "preview", "detail"
-          - "type": one of "question_to_ask" | "talking_point" | "fact_check" | "answer"
+          - "type": must be exactly one of: "question_to_ask" | "talking_point" | and either "fact_check" or "answer" for the third
           - "preview": max 15 words, standalone value, immediately useful
           - "detail": 3-5 sentences of deeper context, data, or recommended follow-up
 
-          SUGGESTION SELECTION RULES:
-          - If a claim was made → include a "fact_check"
-          - If something was unclear → include a "clarification"  
-          - If a question was asked → include an "answer"
-          - If discussion is ongoing → include a "question_to_ask" or "talking_point"
-          - Always pick the mix that's most useful RIGHT NOW
+         TYPES — use exactly one of these four:
+          - "question_to_ask" — a sharp, specific question worth asking the other person right now
+          - "talking_point" — something worth raising, adding, or elaborating on in the conversation
+          - "answer" — a direct, factual answer to something asked or implied in the transcript
+          - "fact_check" — a claim made in the conversation that needs verification or correction
+
+          SELECTION RULES:
+          - Always include one "question_to_ask"
+          - Always include one "talking_point"
+          - For the third card — use "answer" if a question was asked, otherwise use "fact_check"
+          - Never use any type other than the 4 listed above
+
 
           Respond ONLY with valid JSON. No extra text.`,
 
-          chatPrompt: `You are an expert meeting assistant with deep knowledge across business, technology, science, and current events.
+          chatPrompt: `You are an expert meeting assistant. A suggestion was clicked from a live meeting transcript.
 
-          You have access to the full meeting transcript below. Your job is to give detailed, accurate, immediately useful answers.
+          For the user's message, start your response exactly like this:
+          "Detailed answer to: "[repeat the user's message here]""
 
-          RULES:
-          - Be specific and reference exact things said in the meeting
-          - Add relevant facts, data, or context the speaker may not know
-          - If fact-checking, cite what was said vs what is accurate
-          - If answering a question, give a complete answer with supporting detail
-          - Format clearly with structure when helpful
-          - Be direct and concise — no filler phrases
+          Then on a new line give a thorough, well-structured response:
+          - Reference specific things from the transcript
+          - Add relevant facts, data, or external context
+          - Be direct and specific — no filler phrases
+          - Use bullet points or structure when helpful
 
           Transcript:
           {{transcript}}`,

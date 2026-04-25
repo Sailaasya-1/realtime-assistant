@@ -9,6 +9,8 @@ export function useSuggestions() {
   const transcriptLines = useStore((s) => s.transcriptLines);
   const addSuggestionBatch = useStore((s) => s.addSuggestionBatch);
   const isFetching = useStore((s) => s.isFetchingSuggestions);
+  const isRecording = useStore((s) => s.isRecording);
+  const prevRecording = useRef(false);
   const setIsFetching = useStore((s) => s.setIsFetchingSuggestions);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fetchSuggestionsRef = useRef<(() => Promise<void>) | null>(null);
@@ -64,6 +66,8 @@ export function useSuggestions() {
     fetchSuggestionsRef.current = fetchSuggestions;
   }, [fetchSuggestions]);
 
+  
+  
   // Trigger once transcript has meaningful content, then every 30s
   useEffect(() => {
     const totalWords = transcriptLines
@@ -72,26 +76,28 @@ export function useSuggestions() {
       .split(" ")
       .filter(Boolean).length;
       
-    // Start fetching suggestions when there are more than 10 words in the transcript and it hasn't started yet
-    if (totalWords > 10 && !hasStarted.current) {
+    
+    if (totalWords > 10 && !hasStarted.current && isRecording) {
       hasStarted.current = true;
-
       fetchSuggestionsRef.current?.();
-
       intervalRef.current = setInterval(() => {
         fetchSuggestionsRef.current?.();
       }, 30000);
     }
+  }, [transcriptLines, isRecording]);
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+    // Stop when recording stops
+    useEffect(() => {
+      if (!isRecording) {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+        hasStarted.current = false;
       }
-    };
-  }, [transcriptLines]);
+    }, [isRecording]);
 
-  // Reset when transcript is cleared
+  // Reset when transcript cleared
   useEffect(() => {
     if (transcriptLines.length === 0) {
       hasStarted.current = false;
@@ -102,5 +108,5 @@ export function useSuggestions() {
     }
   }, [transcriptLines.length]);
 
-  return { fetchSuggestions, isFetching };
+return { fetchSuggestions, isFetching };
 }
